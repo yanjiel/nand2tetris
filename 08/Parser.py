@@ -132,7 +132,7 @@ class C_FUNCTION(object):
 
 class C_RETURN(object):
     """
-    representation of a function declaration command in VM language
+    representation of a return command in VM language
     Attribute
     arg1: command name, "return"
     """
@@ -142,11 +142,11 @@ class C_RETURN(object):
         self.arg1 = arg1
 
     def __repr__(self):
-        return "C_RETURN:" + self.arg1
+        return "C_RETURN: " + self.arg1
 
 class C_CALL(object):
     """
-    representation of a function declaration command in VM language
+    representation of function call command in VM language
     
     Attribute
     arg1: function name in str
@@ -201,7 +201,7 @@ class Parser(object):
 
             else:
                 # file is a string of commands
-                self.comm_lst = self.removeWhiteSpace(file) ####?????????????????????????????????????????????????
+                self.comm_lst = self.removeWhiteSpace(file)
 
         self.crt_code = None
         self.crt_comm = None
@@ -243,59 +243,87 @@ class Parser(object):
 
     def get_command(self, table={}):
         "returns an instance of C_ARITHMETIC, C_PUSH, C_POP, C_LABEL, C_GOTO, C_IF, C_FUNCTION, C_RETURN, C_CALL"
+        fields = self.crt_code.split(" ")
+        fields = [x for x in fields if x]
+        if not fields:
+            return None
+        comm_type = fields[0].lower().strip() # VM command types are in lower cases
 
-        if self.crt_code in C_ARITHMETIC.OPS: # it is a C_ARITHMETIC command
-            comm = C_ARITHMETIC(arg1=self.crt_code) 
+        if comm_type in C_ARITHMETIC.OPS: # arithmetic command
+            comm = C_ARITHMETIC(arg1=comm_type)
         
-        elif self.crt_code.startswith("push"): # then it is a C_PUSH command
-            arg12 = self.crt_code[4:].strip() # remove the push
-            arg1 = "".join([x for x in arg12 if not x.isdigit()])
-            arg2 = "".join([x for x in arg12 if x.isdigit()])
+        elif comm_type == "push": # push command
+            n = 3
+            if len(fields) < n:
+                raise ValueError("invalid %s command:", self.crt_code, ". Less than %s fields detected") % (comm_type, n)
+            arg1 = fields[1].lower().strip() # memory segments are in lower cases
+            arg2 = fields[2].strip()
+            if not arg2.isdigit():
+                raise ValueError("Self.crt_code", self.crt_code, "has invalid arg2", arg2)
             comm = C_PUSH(arg1=arg1, arg2=arg2)
 
-        elif self.crt_code.startswith("pop"):
-            arg12 = self.crt_code[3:].strip()
-            arg1 = "".join([x for x in arg12 if not x.isdigit()])
-            arg2 = "".join([x for x in arg12 if x.isdigit()])
+        elif comm_type == "pop": # pop command
+            n = 3
+            if len(fields) < n:
+                raise ValueError("invalid %s command:", self.crt_code, ". Less than %s fields detected") % (comm_type, n)
+            arg1 = fields[1].lower().strip() # memory segments are in lower cases
+            arg2 = fields[2].strip()
+            if not arg2.isdigit():
+                raise ValueError("Self.crt_code", self.crt_code, "has invalid arg2", arg2)
             comm = C_POP(arg1=arg1, arg2=arg2)
         
-        elif self.crt_code.startswith("label"):
-            #crt_code = "labelCOMPUTE_ELEMENT"
+        elif comm_type == "label": #label command
+            n = 2
+            if len(fields) < n:
+                raise ValueError("invalid %s command:", self.crt_code, ". Less than %s fields detected") % (comm_type, n)
             arg1 = "label"
-            arg2 = self.crt_code[5:].strip()
+            arg2 = fields[1].strip() # we do not want to change the CASE of labels
             comm = C_LABEL(arg1=arg1, arg2=arg2)
 
-        elif self.crt_code.startswith("goto"):
+        elif comm_type == "goto":
+            n = 2
+            if len(fields) < n:
+                raise ValueError("invalid %s command:", self.crt_code, ". Less than %s fields detected") % (comm_type, n)
             arg1 = "goto"
-            arg2 = self.crt_code[4:].strip()
+            arg2 = fields[1].strip()
             comm = C_GOTO(arg1=arg1, arg2=arg2)
 
-        elif self.crt_code.startswith("if-goto"):
+        elif comm_type == "if-goto":
+            n = 2
+            if len(fields) < n:
+                raise ValueError("invalid %s command:", self.crt_code, ". Less than %s fields detected") % (comm_type, n)
             arg1 = "if-goto"
-            arg2 = self.crt_code[7:].strip()
+            arg2 = fields[1].strip()
             comm = C_IF(arg1=arg1, arg2=arg2)
 
-        elif self.crt_code.startswith("function"):
-            #crt_code = "functionSimpleFunction.test2" ##################### HAVE TO RE-WRITE PARSER AND REMOVE WHITE SPACE SUCH THAT WHITESPACE BETWEEN WORDS ARE NOT REMOVED
-            arg12 = self.crt_code[8:].strip()
-            arg2 = "".join([x for x in arg12 if x.isdigit()]) ###################### functionname can contain numeric
-            arg1 = arg12[:-len(arg2)].strip() ###########################
+        elif comm_type == "function":
+            n = 3
+            if len(fields) < n:
+                raise ValueError("invalid %s command:", self.crt_code, ". Less than %s fields detected") % (comm_type, n)
+            arg1 = fields[1].strip() # keep the cases
+            arg2 = fields[2].strip()
+            if not arg2.isdigit():
+                raise ValueError("Self.crt_code", self.crt_code, "has invalid arg2", arg2)
             comm = C_FUNCTION(arg1=arg1, arg2=arg2)
 
-        elif self.crt_code.startswith("return"):
+        elif comm_type == "return":
             arg1 = "return"
             comm = C_RETURN(arg1=arg1)
 
-        elif self.crt_code.startswith("call"):
-            #callMain.fibonacci1
-            arg12 = self.crt_code[4:]
-            arg1 = "".join([x for x in arg12 if not x.isdigit()]) # Main.fibonacci, which later will be labeled FibonacciElement.Main.fibonacci
-            arg2 = "".join([x for x in arg12 if x.isdigit()]) ####################################
+        elif comm_type == "call":
+            n = 3
+            if len(fields) < n:
+                raise ValueError("invalid %s command:", self.crt_code, ". Less than %s fields detected") % (comm_type, n)
+            arg1 = fields[1].strip() # keep the cases
+            arg2 = fields[2].strip()
+            if not arg2.isdigit():
+                raise ValueError("Self.crt_code", self.crt_code, "has invalid arg2", arg2)
             comm = C_CALL(arg1=arg1, arg2=arg2)
 
         else:
             # we do not accept other types yet
-            raise ValueError("currently we do not support commands other than arithmetic, push, pop, label, goto, if-goto and function")
+            # raise ValueError("currently we do not support commands other than arithmetic, push, pop, label, goto, if-goto and function")
+            comm = None
             
         self.crt_comm = comm
         return self.crt_comm
@@ -313,7 +341,6 @@ class Parser(object):
         if not isinstance(str_in, str):
             raise TypeError("input must be of str type")
 
-        # str_in = str_in.lower() # convert all commands into lower cases
         # remove two types of comments from the file content
         str_in = re.sub(r"//.+\n", "\n", str_in)
         str_in = re.sub(r"/\*[\d\D]*?\*/\n", "", str_in)
@@ -321,29 +348,13 @@ class Parser(object):
         lst_out = [] # initiating the output list to be empty
         # remove any white spaces line by line
         for line in str_in.splitlines():
-            line_new = re.sub(r"\s+", "", line)
+            line_new = line.strip() # do not remove whitespaces between command fields
+            #line_new = re.sub(r"\s+", "", line)
             if line_new:
                 lst_out.append(line_new)
     
         return lst_out
 
-
-
-
-
-
-def testPleaseIgnore():
-    """for testing purposes please ignore"""
-    fname = r"C:\Users\Adele Liu\Desktop\nand2tetris\projects\07\StackArithmetic\SimpleAdd\SimpleAdd.vm"
-    fname = r"C:\Users\Adele Liu\Desktop\nand2tetris\projects\07\StackArithmetic\StackTest\StackTest.vm"
-    with open(fname) as f:
-        comm_lst = Parser().removeWhiteSpace(f.read())
-    psr = Parser("\n".join(comm_lst))
-    while psr.hasMoreCommands():
-        psr.advance()
-        #print(psr.crt_code)
-        print(psr.get_command())
-    
 
 
 if __name__ == "__main__":
