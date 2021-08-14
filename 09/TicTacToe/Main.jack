@@ -1,0 +1,23 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/09/Square/Main.jack
+
+/** Initializes a new Square Dance game and starts running it. */
+class Main {
+    function void main() {
+        var Random rand;
+        let rand = Random.new();
+        int_new = rand.rand();
+        do Screen.printInt(int_new);
+        do Sys.wait(5);
+
+        int_new_2 = rand.randRange(10);
+        do Screen.printInt(int_new_2);
+        do Sys.wait(5);
+
+        called_time = rand.getShift();
+        Screen.printInt(called_time);
+        return;
+    }
+}
