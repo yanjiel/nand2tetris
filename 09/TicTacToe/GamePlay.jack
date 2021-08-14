@@ -1,0 +1,123 @@
+
+
+class GamePlay{
+    field int x, y, size, x2, y2;
+    field int turn; // tracking whose turn, if turn = 0 then player's turn, if turn = 1 then computer's turn
+    field Array player;
+    field Array computer;
+
+    constructor GamePlay new() {
+        let x = 90;
+        let y = 20;
+        let size = 70;
+        let x2 = x + 210;
+        let y2 = y + 210;
+        let turn = -1;
+        do drawGrid();
+        do setTurn();
+        return this;
+    }
+
+    /** Draws a 3x3 grid on the screen. */
+    method void drawGrid(){
+        var int i_x, i_y;
+        var int xlu, xrd, ylu, yrd;
+
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x-1, y-1, x2+1, y2+1); // set a pixel more for the outter edges of the grid
+
+        do Screen.setColor(false);
+        // let i_x = 1;
+        // while (i_x < 4) {
+        //     do Output.printString("i_x:");
+        //     do Output.printInt(i_x);
+        //     do Output.println();
+        //     let i_y = 1;
+        //     while (i_y < 4){
+        //         do Output.printString("i_y:");
+        //         do Output.printInt(i_y);
+        //         do Output.println();
+        //         do Output.printString("i_x:");
+        //         do Output.printInt(i_x);
+        //         do Output.println();
+        //         let xrd = Math.multiply(i_x, size) + x + 1;
+        //         let xlu = xrd - size;
+        //         let yrd = Math.multiply(i_y, size) + y +  1;
+        //         let ylu = yrd - size;
+                
+        //         do Output.printInt(xlu);
+        //         do Output.println();
+        //         do Output.printInt(ylu);
+        //         do Output.println();
+        //         do Output.printInt(xrd);
+        //         do Output.println();
+        //         do Output.printInt(yrd);
+        //         do Output.println();
+                
+        //         do Screen.drawRectangle(xlu, ylu, xrd, yrd);
+        //         let i_y = i_y + 1;
+                
+        //     }
+        //     let i_x = i_x + 1;
+            
+        // }
+
+        do Screen.drawRectangle(x+1, y+1, size+x-1, size+y-1);// grid 1
+        do Screen.drawRectangle(x+1, size+y+1, size+x-1, 2*size+y-1);// grid 4
+        do Screen.drawRectangle(x+1, 2*size+y+1, size+x-1, 3*size+y-1);// grid 7
+
+
+        do Screen.drawRectangle(size+x+1, y+1, 2*size+x-1, size+y-1);// grid 2
+        do Screen.drawRectangle(size+x+1, size+y+1, 2*size+x-1, 2*size+y-1);// grid 5
+        do Screen.drawRectangle(size+x+1, 2*size+y+1, 2*size+x-1, 3*size+y-1);// grid 8
+
+
+        do Screen.drawRectangle(2*size+x+1, y+1, 3*size+x-1, size+y-1);// grid 3
+        do Screen.drawRectangle(2*size+x+1, size+y+1, 3*size+x-1, 2*size+y-1);// grid 6
+        do Screen.drawRectangle(2*size+x+1, 2*size+y+1, 3*size+x-1, 3*size+y-1);// grid 9
+
+        return;
+    }
+
+    method void setTurn() {
+        var Random rand;
+
+        // set a turn if a turn has not been set
+        if (turn = -1) {
+            do Output.printString("No turn has been set");
+            do Output.println();
+            let rand = Random.new(10);
+            let turn = rand.randRange(1);
+            do Output.printInt(turn);
+            do Output.println();
+            
+            if (turn = 0) {
+                do Output.printString("Player's turn");
+                }
+            if (turn = 1) {
+                do Output.printString("Computer's turn");
+                }
+            }
+
+
+        return;
+    }
+
+    // method void play() {
+        
+    // }
+
+    method void player_turn(){
+        do Output.printString("player_turn called");
+        return;
+    }
+
+    /** Disposes this game. */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+
+
+}
